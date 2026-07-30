@@ -1,0 +1,204 @@
+/**
+ * public/css/style.css
+ * -----------------------------------------------------------------------
+ * Secure AI Student Support Portal - custom design system.
+ * Palette: deep academic indigo + warm brass accent + slate neutrals.
+ * -----------------------------------------------------------------------
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink-900: #16213e;
+  --ink-800: #1f2b4d;
+  --indigo-600: #2b3f77;
+  --indigo-500: #3a5aa8;
+  --brass-500: #c78a3e;
+  --brass-400: #dba55e;
+  --slate-50: #f6f7fb;
+  --slate-100: #eef1f7;
+  --slate-600: #5b6478;
+  --success-600: #1f9d6f;
+
+  --bs-primary: var(--indigo-500);
+  --bs-primary-rgb: 58, 90, 168;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--slate-50);
+  color: var(--ink-900);
+}
+
+h1, h2, h3, .display-5 {
+  font-family: 'Fraunces', Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+a { color: var(--indigo-500); }
+
+/* ---------- Navbar ---------- */
+.app-navbar {
+  background: linear-gradient(100deg, var(--ink-900) 0%, var(--indigo-600) 70%, var(--indigo-500) 100%);
+  box-shadow: 0 2px 12px rgba(22, 33, 62, 0.15);
+}
+.app-navbar .navbar-brand {
+  font-family: 'Fraunces', serif;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Footer ---------- */
+.app-footer {
+  background: var(--ink-900);
+}
+
+/* ---------- Hero ---------- */
+.hero-section {
+  background: radial-gradient(circle at 15% 20%, var(--indigo-500) 0%, var(--indigo-600) 45%, var(--ink-900) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.6;
+}
+.text-white-75 { color: rgba(255, 255, 255, 0.82); }
+
+.chat-preview-card {
+  border-radius: 20px;
+  background: #fff;
+}
+.chat-preview-card .chat-bubble {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 14px;
+  margin-bottom: 0.5rem;
+  max-width: 90%;
+}
+.chat-preview-card .chat-bubble.bot {
+  background: var(--slate-100);
+  color: var(--ink-900);
+}
+.chat-preview-card .chat-bubble.user {
+  background: var(--indigo-500);
+  color: #fff;
+  margin-left: auto;
+}
+
+/* ---------- Feature cards ---------- */
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--slate-100);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(22, 33, 62, 0.1);
+}
+
+/* ---------- Auth pages ---------- */
+.auth-page {
+  background: linear-gradient(180deg, var(--slate-50) 0%, var(--slate-100) 100%);
+}
+
+/* ---------- Welcome banner (dashboard) ---------- */
+.welcome-banner {
+  background: linear-gradient(110deg, var(--indigo-600), var(--indigo-500) 60%, var(--brass-500) 130%);
+}
+.text-white-75 { color: rgba(255,255,255,0.85); }
+
+/* ---------- Avatar ---------- */
+.avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brass-400), var(--brass-500));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+/* ---------- Chat window ---------- */
+.chat-window {
+  height: 360px;
+  overflow-y: auto;
+  overflow-anchor: none;
+  background: var(--slate-50);
+  display: flex;
+  flex-direction: column;
+}
+.chat-bubble {
+  max-width: 80%;
+  padding: 0.6rem 1rem;
+  border-radius: 16px;
+  margin-bottom: 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-bubble.bot {
+  background: #fff;
+  border: 1px solid var(--slate-100);
+  color: var(--ink-900);
+  border-bottom-left-radius: 4px;
+}
+.chat-bubble.user {
+  background: var(--indigo-500);
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+.chat-bubble.typing {
+  background: #fff;
+  border: 1px solid var(--slate-100);
+  color: var(--slate-600);
+  font-style: italic;
+}
+.quick-topic-btn {
+  font-size: 0.78rem;
+}
+
+/* ---------- Stat cards (admin) ---------- */
+.stat-card {
+  background: #fff;
+}
+
+/* ---------- Misc ---------- */
+.rounded-4 { border-radius: 1rem !important; }
+.rounded-top-4 { border-radius: 1rem 1rem 0 0 !important; }
+.rounded-bottom-4 { border-radius: 0 0 1rem 1rem !important; }
+
+.btn-primary {
+  background-color: var(--indigo-500);
+  border-color: var(--indigo-500);
+}
+.btn-primary:hover {
+  background-color: var(--indigo-600);
+  border-color: var(--indigo-600);
+}
+.btn-outline-primary {
+  color: var(--indigo-500);
+  border-color: var(--indigo-500);
+}
+
+/* Accessibility: visible focus rings */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid var(--brass-400);
+  outline-offset: 2px;
+}
+
+@media (max-width: 576px) {
+  .chat-window { height: 300px; }
+}

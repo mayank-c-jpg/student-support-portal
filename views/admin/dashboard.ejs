@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head') %>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <%- include('../partials/navbar') %>
+
+  <main class="flex-grow-1">
+    <div class="container-fluid py-4">
+      <h2 class="fw-bold mb-4"><i class="bi bi-speedometer2 text-primary me-2"></i>Admin Dashboard</h2>
+
+      <!-- Stat cards -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 stat-card">
+            <div class="card-body">
+              <i class="bi bi-people fs-2 text-primary"></i>
+              <h3 class="fw-bold mt-2" id="statTotalUsers"><%= stats.totalUsers %></h3>
+              <p class="text-muted mb-0">Registered Users</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 stat-card">
+            <div class="card-body">
+              <i class="bi bi-chat-dots fs-2 text-success"></i>
+              <h3 class="fw-bold mt-2" id="statTotalChats"><%= stats.totalChats %></h3>
+              <p class="text-muted mb-0">Total Chat Messages</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm border-0 rounded-4 stat-card">
+            <div class="card-body">
+              <i class="bi bi-flag fs-2 text-danger"></i>
+              <h3 class="fw-bold mt-2" id="statFlaggedChats"><%= stats.flaggedChats %></h3>
+              <p class="text-muted mb-0">Flagged Conversations</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="nav nav-tabs mb-3" id="adminTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-users">Users</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chats">Chat History</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-faqs">Manage FAQs</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-colleges">Manage Colleges</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-logs">Activity Logs</button></li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- Users -->
+        <div class="tab-pane fade show active" id="tab-users">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  <% users.forEach(u => { %>
+                    <tr data-user-id="<%= u._id %>">
+                      <td><%= u.name || '—' %></td>
+                      <td><%= u.email %></td>
+                      <td><span class="badge bg-secondary-subtle text-secondary text-capitalize"><%= u.role %></span></td>
+                      <td>
+                        <span class="badge <%= u.isActive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' %>">
+                          <%= u.isActive ? 'Active' : 'Disabled' %>
+                        </span>
+                      </td>
+                      <td class="small text-muted"><%= new Date(u.createdAt).toLocaleDateString() %></td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-secondary toggle-user-status" data-active="<%= u.isActive %>">
+                          <%= u.isActive ? 'Disable' : 'Enable' %>
+                        </button>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chats -->
+        <div class="tab-pane fade" id="tab-chats">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body">
+              <div id="adminChatList" class="list-group list-group-flush">
+                <p class="text-muted">Loading chat history...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQs -->
+        <div class="tab-pane fade" id="tab-faqs">
+          <div class="card shadow-sm border-0 rounded-4 mb-3">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Add New FAQ</h6>
+              <form id="faqForm" class="row g-2">
+                <div class="col-md-4">
+                  <select class="form-select" name="category" required>
+                    <% ['Admissions','Courses','Fees','Placements','Internships','Examinations','Scholarships','Library','Campus','General'].forEach(c => { %>
+                      <option value="<%= c %>"><%= c %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="col-md-8">
+                  <input type="text" class="form-control" name="question" placeholder="Question" maxlength="300" required />
+                </div>
+                <div class="col-12">
+                  <textarea class="form-control" name="answer" placeholder="Answer" maxlength="2000" required></textarea>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add FAQ</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div id="faqList" class="row g-3"></div>
+        </div>
+
+        <!-- Colleges -->
+        <div class="tab-pane fade" id="tab-colleges">
+          <div class="card shadow-sm border-0 rounded-4 mb-3">
+            <div class="card-header bg-white rounded-top-4 fw-bold">
+              <i class="bi bi-bar-chart text-primary me-2"></i>College Usage
+            </div>
+            <div class="card-body p-0">
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr><th>College</th><th>Students Selected</th><th>Chat Messages</th></tr>
+                </thead>
+                <tbody id="collegeUsageBody">
+                  <tr><td colspan="3" class="text-muted">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card shadow-sm border-0 rounded-4 mb-3">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3" id="collegeFormTitle">Add New College</h6>
+              <form id="collegeForm">
+                <input type="hidden" name="collegeId" value="" />
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">College Name</label>
+                    <input type="text" class="form-control" name="name" placeholder="e.g. Greater Noida Institute of Technology" maxlength="200" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Location</label>
+                    <input type="text" class="form-control" name="location" placeholder="e.g. Greater Noida, UP" maxlength="200" />
+                  </div>
+                </div>
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Contact Email</label>
+                    <input type="email" class="form-control" name="contactEmail" placeholder="admissions@college.edu" maxlength="200" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Contact Phone</label>
+                    <input type="text" class="form-control" name="contactPhone" placeholder="+91 12345 67890" maxlength="30" />
+                  </div>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label small text-muted">Description</label>
+                  <textarea class="form-control" name="description" rows="2" maxlength="2000" placeholder="Short overview of the college"></textarea>
+                </div>
+
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Admission Process</label>
+                    <textarea class="form-control" name="admissionProcess" rows="2" maxlength="3000"></textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Placement Info</label>
+                    <textarea class="form-control" name="placementInfo" rows="2" maxlength="3000"></textarea>
+                  </div>
+                </div>
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Internship Info</label>
+                    <textarea class="form-control" name="internshipInfo" rows="2" maxlength="3000"></textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small text-muted">Examination Info</label>
+                    <textarea class="form-control" name="examInfo" rows="2" maxlength="3000"></textarea>
+                  </div>
+                </div>
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4">
+                    <label class="form-label small text-muted">Scholarship Info</label>
+                    <textarea class="form-control" name="scholarshipInfo" rows="2" maxlength="3000"></textarea>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small text-muted">Library Info</label>
+                    <textarea class="form-control" name="libraryInfo" rows="2" maxlength="3000"></textarea>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small text-muted">Campus Facilities</label>
+                    <textarea class="form-control" name="campusFacilities" rows="2" maxlength="3000"></textarea>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h6 class="fw-bold mb-0">Courses &amp; Fee Structure</h6>
+                  <button type="button" class="btn btn-sm btn-outline-primary" id="addCourseRowBtn">
+                    <i class="bi bi-plus-circle me-1"></i>Add Course
+                  </button>
+                </div>
+                <div id="courseRows" class="mb-3"></div>
+
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" name="isPublished" id="collegeIsPublished" checked />
+                  <label class="form-check-label" for="collegeIsPublished">Published (visible to students)</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="collegeSubmitBtn">
+                  <i class="bi bi-plus-circle me-1"></i>Add College
+                </button>
+                <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditCollegeBtn">
+                  Cancel Edit
+                </button>
+              </form>
+            </div>
+          </div>
+          <div id="collegeList" class="row g-3"></div>
+
+          <!-- Template cloned by admin.js for each course row -->
+          <template id="courseRowTemplate">
+            <div class="row g-2 align-items-end course-row mb-2">
+              <div class="col-md-4">
+                <label class="form-label small text-muted">Course Name</label>
+                <input type="text" class="form-control course-name" placeholder="e.g. B.Tech CSE" maxlength="120" required />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small text-muted">Tuition / Year (₹)</label>
+                <input type="number" class="form-control course-tuition" min="0" step="1" required />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small text-muted">Hostel / Year (₹)</label>
+                <input type="number" class="form-control course-hostel" min="0" step="1" value="0" />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small text-muted">Exam / Sem (₹)</label>
+                <input type="number" class="form-control course-exam" min="0" step="1" value="0" />
+              </div>
+              <div class="col-md-1">
+                <button type="button" class="btn btn-outline-danger remove-course-row-btn"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Logs -->
+        <div class="tab-pane fade" id="tab-logs">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body table-responsive">
+              <table class="table align-middle">
+                <thead><tr><th>User</th><th>Action</th><th>Details</th><th>When</th></tr></thead>
+                <tbody>
+                  <% recentLogs.forEach(log => { %>
+                    <tr>
+                      <td><%= log.user ? (log.user.name || log.user.email) : 'Unknown' %></td>
+                      <td><span class="badge bg-info-subtle text-info"><%= log.action %></span></td>
+                      <td class="small text-muted"><%= log.details %></td>
+                      <td class="small text-muted"><%= new Date(log.createdAt).toLocaleString() %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

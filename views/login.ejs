@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <%- include('partials/navbar') %>
+
+  <main class="flex-grow-1 d-flex align-items-center auth-page">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+              <div class="text-center mb-4">
+                <i class="bi bi-shield-lock-fill fs-1 text-primary"></i>
+                <h3 class="fw-bold mt-2">Welcome Back</h3>
+                <p class="text-muted">Sign in securely via IBM Cloud App ID</p>
+              </div>
+
+              <% if (expired) { %>
+                <div class="alert alert-warning">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                  Your session expired. Please log in again to continue.
+                </div>
+              <% } %>
+
+              <p class="small text-muted">
+                For maximum security, sign-in (email &amp; password) is handled
+                by IBM Cloud App ID's protected Cloud Directory service.
+                Clicking below will take you to App ID's secure hosted login
+                page and bring you right back here once verified.
+              </p>
+
+              <a href="/auth/login" class="btn btn-primary w-100 py-2 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Continue to Secure Login
+              </a>
+
+              <div class="text-center mt-4">
+                <span class="text-muted small">Don't have an account?</span>
+                <a href="/register" class="small fw-semibold">Create one</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

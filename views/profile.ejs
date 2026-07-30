@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <%- include('partials/navbar') %>
+
+  <main class="flex-grow-1">
+    <div class="container py-4">
+      <h2 class="fw-bold mb-4"><i class="bi bi-person-gear text-primary me-2"></i>My Profile</h2>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0 rounded-4 text-center">
+            <div class="card-body">
+              <div class="avatar-circle mx-auto mb-3 fs-2">
+                <%= (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase() %>
+              </div>
+              <h5 class="fw-bold mb-0"><%= currentUser.name || 'Student' %></h5>
+              <p class="text-muted small"><%= currentUser.email %></p>
+              <span class="badge bg-primary-subtle text-primary text-capitalize"><%= currentUser.role %></span>
+              <hr />
+              <p class="small text-muted mb-0">
+                Member since <%= new Date(currentUser.createdAt).toLocaleDateString() %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white rounded-top-4 fw-bold">Edit Profile Information</div>
+            <div class="card-body">
+              <form id="profileForm">
+                <div class="mb-3">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" class="form-control" name="name" value="<%= currentUser.name || '' %>" maxlength="120" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Email (managed by App ID)</label>
+                  <input type="email" class="form-control" value="<%= currentUser.email %>" disabled />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Phone</label>
+                  <input type="text" class="form-control" name="phone" value="<%= currentUser.phone || '' %>" maxlength="20" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Course / Program</label>
+                  <input type="text" class="form-control" name="course" value="<%= currentUser.course || '' %>" maxlength="120" />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  <span class="spinner-border spinner-border-sm d-none" id="profileSpinner"></span>
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('partials/footer') %>
+  <script src="/js/profile.js"></script>
+</body>
+</html>
