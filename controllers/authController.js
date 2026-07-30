@@ -29,8 +29,8 @@ const logger = require('../utils/logger');
 
 /** Stashes the desired post-login destination before kicking off auth. */
 const rememberReturnTo = (req, res, next) => {
-  req.session.returnTo = req.query.returnTo || '/dashboard';
-  next();
+    req.session.returnTo = req.query.returnTo || '/dashboard';
+    next();
 };
 
 /**
@@ -39,23 +39,42 @@ const rememberReturnTo = (req, res, next) => {
  * updates the local MongoDB user profile, then redirects to the
  * user's intended destination.
  */
-const finalizeLogin = async (req, res, next) => {
-  try {
-    const authContext = req.session[WebAppStrategy.AUTH_CONTEXT];
-    // See authMiddleware.js -- AUTH_CONTEXT has no ".user" property;
-    // the real claims live in identityTokenPayload / req.user.
-    const appIdUser = req.user || (authContext && authContext.identityTokenPayload);
+const finalizeLogin = async(req, res, next) => {
+    try {
+        logger.info("===== FINALIZE LOGIN CALLED =====");
+        logger.info("req.user:");
+        logger.info(JSON.stringify(req.user, null, 2));
 
-    const localUser = await findOrCreateLocalUser(appIdUser, req);
-    req.session.localUser = localUser;
+        const authContext = req.session[WebAppStrategy.AUTH_CONTEXT];
 
-    const returnTo = req.session.returnTo || '/dashboard';
-    delete req.session.returnTo;
-    return res.redirect(returnTo);
-  } catch (err) {
-    logger.error(`App ID login finalization error: ${err.message}`);
-    return next(err);
-  }
+        logger.info("AUTH_CONTEXT:");
+        logger.info(JSON.stringify(authContext, null, 2));
+
+        const appIdUser =
+            req.user ||
+            (authContext && authContext.identityTokenPayload);
+
+        if (!appIdUser) {
+            logger.error("No App ID user found");
+            return res.redirect("/login");
+        }
+
+        const localUser = await findOrCreateLocalUser(appIdUser, req);
+
+        req.session.localUser = localUser;
+
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        return res.redirect("/dashboard");
+    } catch (err) {
+        logger.error(err);
+        next(err);
+    }
 };
 
 /**
@@ -70,28 +89,28 @@ const finalizeLogin = async (req, res, next) => {
  * destroying the session achieves the same practical result (the user
  * is fully logged out of this app) without touching that broken path.
  */
-const logout = async (req, res, next) => {
-  try {
-    if (req.currentUser) {
-      await ActivityLog.create({
-        user: req.currentUser._id,
-        action: 'LOGOUT',
-        details: 'User logged out',
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'] || '',
-      });
-    }
+const logout = async(req, res, next) => {
+    try {
+        if (req.currentUser) {
+            await ActivityLog.create({
+                user: req.currentUser._id,
+                action: 'LOGOUT',
+                details: 'User logged out',
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'] || '',
+            });
+        }
 
-    req.session.destroy((err) => {
-      if (err) {
-        logger.error(`Error destroying session on logout: ${err.message}`);
-      }
-      res.clearCookie('connect.sid');
-      return res.redirect('/');
-    });
-  } catch (err) {
-    return next(err);
-  }
+        req.session.destroy((err) => {
+            if (err) {
+                logger.error(`Error destroying session on logout: ${err.message}`);
+            }
+            res.clearCookie('connect.sid');
+            return res.redirect('/');
+        });
+    } catch (err) {
+        return next(err);
+    }
 };
 
 module.exports = { rememberReturnTo, finalizeLogin, logout };

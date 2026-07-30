@@ -38,6 +38,7 @@ const collegeRoutes = require('./routes/collegeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // -------------------------------------------------------------------------
 // 1. Database
@@ -54,25 +55,25 @@ app.set('views', path.join(__dirname, 'views'));
 // 3. Core security middleware
 // -------------------------------------------------------------------------
 app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        // Bootstrap/Bootstrap Icons + our own static assets
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
-        scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
-        imgSrc: ["'self'", 'data:'],
-        connectSrc: ["'self'"],
-        fontSrc: ["'self'", 'https://cdn.jsdelivr.net'],
-      },
-    },
-  })
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                // Bootstrap/Bootstrap Icons + our own static assets
+                styleSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
+                scriptSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com'],
+                imgSrc: ["'self'", 'data:'],
+                connectSrc: ["'self'"],
+                fontSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+            },
+        },
+    })
 );
 app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || true,
-    credentials: true,
-  })
+    cors({
+        origin: process.env.CORS_ORIGIN || true,
+        credentials: true,
+    })
 );
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -90,23 +91,24 @@ app.use(mongoSanitize()); // strips keys starting with "$" or containing "."
 //    IBM App ID's WebAppStrategy stores auth context on req.session.
 // -------------------------------------------------------------------------
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'insecure-dev-secret-change-me',
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: 'sessions',
-      ttl: 60 * 60 * 2, // 2 hours -- session expiration
-    }),
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 2, // 2 hours
-    },
-    name: 'connect.sid',
-  })
+    session({
+        secret: process.env.SESSION_SECRET || 'insecure-dev-secret-change-me',
+        resave: false,
+        saveUninitialized: false,
+        proxy: true,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGO_URI,
+            collectionName: 'sessions',
+            ttl: 60 * 60 * 2,
+        }),
+        cookie: {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 1000 * 60 * 60 * 2,
+        },
+        name: 'connect.sid',
+    })
 );
 
 // -------------------------------------------------------------------------
@@ -138,10 +140,10 @@ app.use('/api', apiLimiter);
 // -------------------------------------------------------------------------
 app.use(attachCsrfToken);
 app.use('/api', (req, res, next) => {
-  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
-    return next();
-  }
-  return doubleCsrfProtection(req, res, next);
+    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+        return next();
+    }
+    return doubleCsrfProtection(req, res, next);
 });
 
 // -------------------------------------------------------------------------
@@ -165,8 +167,8 @@ app.use(globalErrorHandler);
 // -------------------------------------------------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  logger.info(`Secure AI Student Support Portal running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`Secure AI Student Support Portal running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;
