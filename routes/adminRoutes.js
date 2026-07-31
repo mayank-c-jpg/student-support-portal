@@ -9,7 +9,9 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const collegeController = require('../controllers/collegeController');
+const collegeImportController = require('../controllers/collegeImportController');
 const { protectApi, requireAdminApi } = require('../middleware/authMiddleware');
+const { handleUploadErrors } = require('../middleware/uploadMiddleware');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 const { faqRules, collegeRules, mongoIdParamRule, handleValidation } = require('../utils/validators');
 
@@ -80,5 +82,9 @@ router.delete(
   handleValidation,
   asyncHandler(collegeController.deleteCollege)
 );
+
+// Bulk College Import
+router.get('/sample-college-file', asyncHandler(collegeImportController.downloadSampleFile));
+router.post('/import-colleges', handleUploadErrors, asyncHandler(collegeImportController.importColleges));
 
 module.exports = router;

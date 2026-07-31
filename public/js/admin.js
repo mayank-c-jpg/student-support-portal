@@ -437,4 +437,129 @@
     loadColleges();
     loadCollegeUsage();
   });
+
+  // ---------------- Bulk College Import ----------------
+  const downloadSampleBtn = document.getElementById('downloadSampleBtn');
+  const importFileInput = document.getElementById('importFileInput');
+  const importSubmitBtn = document.getElementById('importSubmitBtn');
+  const importSpinner = document.getElementById('importSpinner');
+  const importSubmitIcon = document.getElementById('importSubmitIcon');
+  const importProgressWrap = document.getElementById('importProgressWrap');
+  const importProgressBar = document.getElementById('importProgressBar');
+  const importAlertArea = document.getElementById('importAlertArea');
+  const importCollegesModalEl = document.getElementById('importCollegesModal');
+
+  downloadSampleBtn?.addEventListener('click', () => {
+    // Plain navigation (not apiFetch) so the browser handles the
+    // file download via the Content-Disposition header; GET requests
+    // aren't subject to CSRF checks in this app.
+    const link = document.createElement('a');
+    link.href = '/api/admin/sample-college-file';
+    link.download = 'college-import-sample.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  });
+
+  function resetImportModalState() {
+    importProgressWrap?.classList.add('d-none');
+    if (importProgressBar) {
+      importProgressBar.style.width = '0%';
+      importProgressBar.textContent = '0%';
+    }
+    if (importAlertArea) importAlertArea.innerHTML = '';
+    if (importFileInput) importFileInput.value = '';
+    setImportBusy(false);
+  }
+
+  function setImportBusy(busy) {
+    if (importSubmitBtn) importSubmitBtn.disabled = busy;
+    importSpinner?.classList.toggle('d-none', !busy);
+    importSubmitIcon?.classList.toggle('d-none', busy);
+  }
+
+  function renderImportResult(data) {
+    if (!importAlertArea) return;
+    const hasFailures = data.failed > 0;
+    importAlertArea.innerHTML = `
+      <div class="alert ${hasFailures ? 'alert-warning' : 'alert-success'} mb-0">
+        <strong>Import complete.</strong><br />
+        Imported: ${data.imported} colleges<br />
+        Skipped (duplicates): ${data.skipped}<br />
+        Failed (invalid rows): ${data.failed}
+        ${data.emptyRowsSkipped ? `<br />Empty rows ignored: ${data.emptyRowsSkipped}` : ''}
+        ${
+          data.failedDetails && data.failedDetails.length > 0
+            ? `<hr class="my-2" /><div class="small">First ${data.failedDetails.length} issues:<ul class="mb-0">${data.failedDetails
+                .map((f) => `<li>Row ${f.row}: ${escapeHtml(f.reason)}</li>`)
+                .join('')}</ul></div>`
+            : ''
+        }
+      </div>`;
+  }
+
+  importCollegesModalEl?.addEventListener('hidden.bs.modal', resetImportModalState);
+
+  importSubmitBtn?.addEventListener('click', () => {
+    const file = importFileInput?.files?.[0];
+    if (!file) {
+      showToast('Please choose a .xlsx or .csv file first.', 'warning');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setImportBusy(true);
+    importAlertArea.innerHTML = '';
+    importProgressWrap?.classList.remove('d-none');
+    if (importProgressBar) {
+      importProgressBar.style.width = '0%';
+      importProgressBar.textContent = '0%';
+    }
+
+    // XMLHttpRequest (not fetch) is used here specifically because it
+    // supports upload progress events, needed for the progress bar
+    // with potentially large (up to 100MB) files.
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/admin/import-colleges');
+    xhr.setRequestHeader('x-csrf-token', getCsrfToken());
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || !importProgressBar) return;
+      const pct = Math.round((event.loaded / event.total) * 100);
+      importProgressBar.style.width = `${pct}%`;
+      importProgressBar.textContent = `${pct}%`;
+    });
+
+    xhr.onload = () => {
+      setImportBusy(false);
+      let payload = null;
+      try {
+        payload = JSON.parse(xhr.responseText);
+      } catch {
+        payload = null;
+      }
+
+      if (xhr.status >= 200 && xhr.status < 300 && payload?.data) {
+        renderImportResult(payload.data);
+        showToast('Import finished.', 'success');
+        loadColleges();
+        loadCollegeUsage();
+      } else {
+        const message = payload?.message || `Import failed (status ${xhr.status}).`;
+        importAlertArea.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(message)}</div>`;
+        showToast(message, 'danger');
+      }
+    };
+
+    xhr.onerror = () => {
+      setImportBusy(false);
+      importAlertArea.innerHTML =
+        '<div class="alert alert-danger mb-0">Network error during upload. Please try again.</div>';
+      showToast('Network error during upload.', 'danger');
+    };
+
+    xhr.send(formData);
+  });
 })();
