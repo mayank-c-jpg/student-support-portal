@@ -1,373 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <%- include('partials/head') %>
+  <%- include('partials/head') %>
 </head>
-
 <body class="d-flex flex-column min-vh-100 bg-light">
-    <%- include('partials/navbar') %>
+  <%- include('partials/navbar') %>
 
-        <main class="flex-grow-1">
-            <div class="container-fluid py-4">
-                <h2 class="fw-bold mb-4"><i class="bi bi-speedometer2 text-primary me-2"></i>Admin Dashboard</h2>
+  <main class="flex-grow-1">
+    <div class="container py-4">
 
-                <!-- Stat cards -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card shadow-sm border-0 rounded-4 stat-card">
-                            <div class="card-body">
-                                <i class="bi bi-people fs-2 text-primary"></i>
-                                <h3 class="fw-bold mt-2" id="statTotalUsers">
-                                    <%= stats.totalUsers %>
-                                </h3>
-                                <p class="text-muted mb-0">Registered Users</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card shadow-sm border-0 rounded-4 stat-card">
-                            <div class="card-body">
-                                <i class="bi bi-chat-dots fs-2 text-success"></i>
-                                <h3 class="fw-bold mt-2" id="statTotalChats">
-                                    <%= stats.totalChats %>
-                                </h3>
-                                <p class="text-muted mb-0">Total Chat Messages</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card shadow-sm border-0 rounded-4 stat-card">
-                            <div class="card-body">
-                                <i class="bi bi-flag fs-2 text-danger"></i>
-                                <h3 class="fw-bold mt-2" id="statFlaggedChats">
-                                    <%= stats.flaggedChats %>
-                                </h3>
-                                <p class="text-muted mb-0">Flagged Conversations</p>
-                            </div>
-                        </div>
-                    </div>
+      <!-- Welcome banner -->
+      <div class="welcome-banner rounded-4 p-4 mb-4 text-white">
+        <h2 class="fw-bold mb-1">Welcome back, <%= currentUser.name || currentUser.email %>! 👋</h2>
+        <p class="mb-0 text-white-75">
+          Ask the AI assistant anything about admissions, courses, fees, placements, and more.
+        </p>
+        <div class="mt-2">
+          <% if (selectedCollege) { %>
+            <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+              <i class="bi bi-bank me-1"></i>Asking about: <strong><%= selectedCollege.name %></strong>
+            </span>
+            <a href="/colleges" class="small text-white ms-2">Change college</a>
+          <% } else { %>
+            <a href="/colleges" class="badge bg-warning text-dark px-3 py-2 rounded-pill text-decoration-none">
+              <i class="bi bi-exclamation-circle me-1"></i>No college selected — pick one for tailored answers
+            </a>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Chatbot Panel -->
+        <div class="col-lg-8">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white rounded-top-4 d-flex align-items-center justify-content-between">
+              <span class="fw-bold"><i class="bi bi-robot text-primary me-2"></i>AI Assistant</span>
+              <span class="badge bg-success-subtle text-success" id="chatStatusBadge">
+                <i class="bi bi-circle-fill me-1"></i>Online
+              </span>
+            </div>
+            <div class="card-body p-0">
+              <div id="chatWindow" class="chat-window p-3">
+                <div class="chat-bubble bot">
+                  Hello! I'm your campus AI assistant. Ask me about admissions,
+                  courses, fee structure, placements, internships, exams,
+                  scholarships, library services, or campus facilities.
                 </div>
-
-                <ul class="nav nav-tabs mb-3" id="adminTabs">
-                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-users">Users</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chats">Chat History</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-faqs">Manage FAQs</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-colleges">Manage Colleges</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-logs">Activity Logs</button></li>
-                </ul>
-
-                <div class="tab-content">
-                    <!-- Users -->
-                    <div class="tab-pane fade show active" id="tab-users">
-                        <div class="card shadow-sm border-0 rounded-4">
-                            <div class="card-body table-responsive">
-                                <table class="table align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Role</th>
-                                            <th>Status</th>
-                                            <th>Joined</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% users.forEach(u => { %>
-                                            <tr data-user-id="<%= u._id %>">
-                                                <td>
-                                                    <%= u.name || '—' %>
-                                                </td>
-                                                <td>
-                                                    <%= u.email %>
-                                                </td>
-                                                <td><span class="badge bg-secondary-subtle text-secondary text-capitalize"><%= u.role %></span></td>
-                                                <td>
-                                                    <span class="badge <%= u.isActive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' %>">
-                          <%= u.isActive ? 'Active' : 'Disabled' %>
-                        </span>
-                                                </td>
-                                                <td class="small text-muted">
-                                                    <%= new Date(u.createdAt).toLocaleDateString() %>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-secondary toggle-user-status" data-active="<%= u.isActive %>">
-                          <%= u.isActive ? 'Disable' : 'Enable' %>
-                        </button>
-                                                </td>
-                                            </tr>
-                                            <% }) %>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chats -->
-                    <div class="tab-pane fade" id="tab-chats">
-                        <div class="card shadow-sm border-0 rounded-4">
-                            <div class="card-body">
-                                <div id="adminChatList" class="list-group list-group-flush">
-                                    <p class="text-muted">Loading chat history...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FAQs -->
-                    <div class="tab-pane fade" id="tab-faqs">
-                        <div class="card shadow-sm border-0 rounded-4 mb-3">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-3">Add New FAQ</h6>
-                                <form id="faqForm" class="row g-2">
-                                    <div class="col-md-4">
-                                        <select class="form-select" name="category" required>
-                    <% ['Admissions','Courses','Fees','Placements','Internships','Examinations','Scholarships','Library','Campus','General'].forEach(c => { %>
-                      <option value="<%= c %>"><%= c %></option>
-                    <% }) %>
-                  </select>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <input type="text" class="form-control" name="question" placeholder="Question" maxlength="300" required />
-                                    </div>
-                                    <div class="col-12">
-                                        <textarea class="form-control" name="answer" placeholder="Answer" maxlength="2000" required></textarea>
-                                    </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Add FAQ</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div id="faqList" class="row g-3"></div>
-                    </div>
-
-                    <!-- Colleges -->
-                    <div class="tab-pane fade" id="tab-colleges">
-                        <div class="d-flex justify-content-end mb-3">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importCollegesModal">
-              <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Colleges
-            </button>
-                        </div>
-
-                        <div class="card shadow-sm border-0 rounded-4 mb-3">
-                            <div class="card-header bg-white rounded-top-4 fw-bold">
-                                <i class="bi bi-bar-chart text-primary me-2"></i>College Usage
-                            </div>
-                            <div class="card-body p-0">
-                                <table class="table align-middle mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>College</th>
-                                            <th>Students Selected</th>
-                                            <th>Chat Messages</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="collegeUsageBody">
-                                        <tr>
-                                            <td colspan="3" class="text-muted">Loading...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="card shadow-sm border-0 rounded-4 mb-3">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-3" id="collegeFormTitle">Add New College</h6>
-                                <form id="collegeForm">
-                                    <input type="hidden" name="collegeId" value="" />
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">College Name</label>
-                                            <input type="text" class="form-control" name="name" placeholder="e.g. Greater Noida Institute of Technology" maxlength="200" required />
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Location</label>
-                                            <input type="text" class="form-control" name="location" placeholder="e.g. Greater Noida, UP" maxlength="200" />
-                                        </div>
-                                    </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Contact Email</label>
-                                            <input type="email" class="form-control" name="contactEmail" placeholder="admissions@college.edu" maxlength="200" />
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Contact Phone</label>
-                                            <input type="text" class="form-control" name="contactPhone" placeholder="+91 12345 67890" maxlength="30" />
-                                        </div>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label small text-muted">Description</label>
-                                        <textarea class="form-control" name="description" rows="2" maxlength="2000" placeholder="Short overview of the college"></textarea>
-                                    </div>
-
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Admission Process</label>
-                                            <textarea class="form-control" name="admissionProcess" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Placement Info</label>
-                                            <textarea class="form-control" name="placementInfo" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Internship Info</label>
-                                            <textarea class="form-control" name="internshipInfo" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small text-muted">Examination Info</label>
-                                            <textarea class="form-control" name="examInfo" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label small text-muted">Scholarship Info</label>
-                                            <textarea class="form-control" name="scholarshipInfo" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small text-muted">Library Info</label>
-                                            <textarea class="form-control" name="libraryInfo" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label small text-muted">Campus Facilities</label>
-                                            <textarea class="form-control" name="campusFacilities" rows="2" maxlength="3000"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <h6 class="fw-bold mb-0">Courses &amp; Fee Structure</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addCourseRowBtn">
-                    <i class="bi bi-plus-circle me-1"></i>Add Course
-                  </button>
-                                    </div>
-                                    <div id="courseRows" class="mb-3"></div>
-
-                                    <div class="form-check form-switch mb-3">
-                                        <input class="form-check-input" type="checkbox" name="isPublished" id="collegeIsPublished" checked />
-                                        <label class="form-check-label" for="collegeIsPublished">Published (visible to students)</label>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-primary" id="collegeSubmitBtn">
-                  <i class="bi bi-plus-circle me-1"></i>Add College
-                </button>
-                                    <button type="button" class="btn btn-outline-secondary d-none" id="cancelEditCollegeBtn">
-                  Cancel Edit
-                </button>
-                                </form>
-                            </div>
-                        </div>
-                        <div id="collegeList" class="row g-3"></div>
-
-                        <!-- Template cloned by admin.js for each course row -->
-                        <template id="courseRowTemplate">
-            <div class="row g-2 align-items-end course-row mb-2">
-              <div class="col-md-4">
-                <label class="form-label small text-muted">Course Name</label>
-                <input type="text" class="form-control course-name" placeholder="e.g. B.Tech CSE" maxlength="120" required />
-              </div>
-              <div class="col-md-3">
-                <label class="form-label small text-muted">Tuition / Year (₹)</label>
-                <input type="number" class="form-control course-tuition" min="0" step="1" required />
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small text-muted">Hostel / Year (₹)</label>
-                <input type="number" class="form-control course-hostel" min="0" step="1" value="0" />
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small text-muted">Exam / Sem (₹)</label>
-                <input type="number" class="form-control course-exam" min="0" step="1" value="0" />
-              </div>
-              <div class="col-md-1">
-                <button type="button" class="btn btn-outline-danger remove-course-row-btn"><i class="bi bi-trash"></i></button>
               </div>
             </div>
-          </template>
-
-                        <!-- Bulk College Import Modal -->
-                        <div class="modal fade" id="importCollegesModal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content rounded-4">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title fw-bold">
-                                            <i class="bi bi-file-earmark-arrow-up text-success me-2"></i>Import Colleges
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p class="text-muted small">
-                                            Upload an Excel (.xlsx) or CSV (.csv) file containing college data. Not sure of the format? Download the sample file first.
-                                        </p>
-
-                                        <button type="button" class="btn btn-outline-secondary w-100 mb-3" id="downloadSampleBtn">
-                    <i class="bi bi-download me-1"></i>Download Sample File
-                  </button>
-
-                                        <div class="mb-3">
-                                            <label class="form-label small text-muted">Choose File</label>
-                                            <input type="file" class="form-control" id="importFileInput" accept=".xlsx,.csv" />
-                                        </div>
-
-                                        <div class="progress mb-3 d-none" id="importProgressWrap" style="height: 20px;">
-                                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="importProgressBar" role="progressbar" style="width: 0%">0%</div>
-                                        </div>
-
-                                        <div id="importAlertArea"></div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-success" id="importSubmitBtn">
-                    <span class="spinner-border spinner-border-sm d-none" id="importSpinner"></span>
-                    <i class="bi bi-upload me-1" id="importSubmitIcon"></i>Import
-                  </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Logs -->
-                    <div class="tab-pane fade" id="tab-logs">
-                        <div class="card shadow-sm border-0 rounded-4">
-                            <div class="card-body table-responsive">
-                                <table class="table align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>User</th>
-                                            <th>Action</th>
-                                            <th>Details</th>
-                                            <th>When</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% recentLogs.forEach(log => { %>
-                                            <tr>
-                                                <td>
-                                                    <%= log.user ? (log.user.name || log.user.email) : 'Unknown' %>
-                                                </td>
-                                                <td><span class="badge bg-info-subtle text-info"><%= log.action %></span></td>
-                                                <td class="small text-muted">
-                                                    <%= log.details %>
-                                                </td>
-                                                <td class="small text-muted">
-                                                    <%= new Date(log.createdAt).toLocaleString() %>
-                                                </td>
-                                            </tr>
-                                            <% }) %>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="card-footer bg-white rounded-bottom-4">
+              <form id="chatForm" class="d-flex gap-2" autocomplete="off">
+                <input
+                  type="text"
+                  id="chatInput"
+                  class="form-control"
+                  placeholder="Type your question..."
+                  maxlength="1000"
+                  required
+                />
+                <button type="submit" class="btn btn-primary" id="chatSendBtn">
+                  <i class="bi bi-send-fill"></i>
+                </button>
+              </form>
+              <div class="quick-topics mt-2 d-flex flex-wrap gap-2">
+                <% ['Admissions','Fee structure','Placements','Scholarships','Library hours'].forEach(topic => { %>
+                  <button type="button" class="btn btn-sm btn-outline-secondary quick-topic-btn"><%= topic %></button>
+                <% }) %>
+              </div>
             </div>
-        </main>
+          </div>
+        </div>
 
-        <%- include('partials/footer') %>
-            <script src="/js/admin.js"></script>
+        <!-- Sidebar: Profile + Recent Chats -->
+        <div class="col-lg-4">
+          <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body text-center">
+              <div class="avatar-circle mx-auto mb-3">
+                <%= (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase() %>
+              </div>
+              <h5 class="fw-bold mb-0"><%= currentUser.name || 'Student' %></h5>
+              <p class="text-muted small mb-2"><%= currentUser.email %></p>
+              <span class="badge bg-primary-subtle text-primary text-capitalize"><%= currentUser.role %></span>
+              <hr />
+              <a href="/profile" class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-person-gear me-1"></i>View / Edit Profile
+              </a>
+            </div>
+          </div>
+
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-header bg-white rounded-top-4 fw-bold">
+              <i class="bi bi-clock-history text-primary me-2"></i>Recent Chat History
+            </div>
+            <div class="card-body p-0">
+              <ul class="list-group list-group-flush" id="recentHistoryList">
+                <% if (recentChats.length === 0) { %>
+                  <li class="list-group-item text-muted small">No chat history yet. Start a conversation!</li>
+                <% } %>
+                <% recentChats.forEach(chat => { %>
+                  <li class="list-group-item">
+                    <div class="small text-muted"><%= new Date(chat.createdAt).toLocaleString() %></div>
+                    <div class="fw-semibold text-truncate"><i class="bi bi-person-fill me-1"></i><%= chat.userMessage %></div>
+                    <div class="text-truncate text-primary"><i class="bi bi-robot me-1"></i><%= chat.botReply %></div>
+                  </li>
+                <% }) %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <div class="card shadow-sm border-0 rounded-4 mt-4">
+        <div class="card-header bg-white rounded-top-4 fw-bold">
+          <i class="bi bi-question-circle text-primary me-2"></i>Frequently Asked Questions
+        </div>
+        <div class="card-body">
+          <div class="accordion" id="faqAccordion">
+            <% faqs.forEach((faq, idx) => { %>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq<%= idx %>">
+                    <span class="badge bg-secondary-subtle text-secondary me-2"><%= faq.category %></span>
+                    <%= faq.question %>
+                  </button>
+                </h2>
+                <div id="faq<%= idx %>" class="accordion-collapse collapse">
+                  <div class="accordion-body text-muted"><%= faq.answer %></div>
+                </div>
+              </div>
+            <% }) %>
+            <% if (faqs.length === 0) { %>
+              <p class="text-muted mb-0">No FAQs published yet.</p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <%- include('partials/footer') %>
+  <script src="/js/chat.js"></script>
+  <script src="/js/dashboard.js"></script>
 </body>
-
 </html>

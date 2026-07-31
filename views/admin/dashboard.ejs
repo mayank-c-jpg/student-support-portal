@@ -124,6 +124,12 @@
 
         <!-- Colleges -->
         <div class="tab-pane fade" id="tab-colleges">
+          <div class="d-flex justify-content-end mb-3">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importCollegesModal">
+              <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Colleges
+            </button>
+          </div>
+
           <div class="card shadow-sm border-0 rounded-4 mb-3">
             <div class="card-header bg-white rounded-top-4 fw-bold">
               <i class="bi bi-bar-chart text-primary me-2"></i>College Usage
@@ -253,6 +259,53 @@
               </div>
             </div>
           </template>
+
+          <!-- Bulk College Import Modal -->
+          <div class="modal fade" id="importCollegesModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content rounded-4">
+                <div class="modal-header">
+                  <h5 class="modal-title fw-bold">
+                    <i class="bi bi-file-earmark-arrow-up text-success me-2"></i>Import Colleges
+                  </h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="text-muted small">
+                    Upload an Excel (.xlsx) or CSV (.csv) file containing college data.
+                    Not sure of the format? Download the sample file first.
+                  </p>
+
+                  <button type="button" class="btn btn-outline-secondary w-100 mb-3" id="downloadSampleBtn">
+                    <i class="bi bi-download me-1"></i>Download Sample File
+                  </button>
+
+                  <div class="mb-3">
+                    <label class="form-label small text-muted">Choose File</label>
+                    <input type="file" class="form-control" id="importFileInput" accept=".xlsx,.csv" />
+                  </div>
+
+                  <div class="progress mb-3 d-none" id="importProgressWrap" style="height: 20px;">
+                    <div
+                      class="progress-bar progress-bar-striped progress-bar-animated"
+                      id="importProgressBar"
+                      role="progressbar"
+                      style="width: 0%"
+                    >0%</div>
+                  </div>
+
+                  <div id="importAlertArea"></div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-success" id="importSubmitBtn">
+                    <span class="spinner-border spinner-border-sm d-none" id="importSpinner"></span>
+                    <i class="bi bi-upload me-1" id="importSubmitIcon"></i>Import
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Logs -->
