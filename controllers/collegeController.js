@@ -76,14 +76,25 @@ const listColleges = async (req, res, next) => {
   try {
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const search = (req.query.search || '').trim();
+
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } },
+        { state: { $regex: search, $options: 'i' } },
+        { city: { $regex: search, $options: 'i' } },
+      ];
+    }
 
     const [colleges, total] = await Promise.all([
-      College.find()
+      College.find(filter)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
-      College.countDocuments(),
+      College.countDocuments(filter),
     ]);
 
     return success(res, 200, 'Colleges retrieved', {

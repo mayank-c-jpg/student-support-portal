@@ -219,6 +219,8 @@
   const collegeFormTitle = document.getElementById('collegeFormTitle');
   const collegeSubmitBtn = document.getElementById('collegeSubmitBtn');
   const cancelEditCollegeBtn = document.getElementById('cancelEditCollegeBtn');
+  const collegeSearchInput = document.getElementById('collegeSearchInput');
+  const clearCollegeSearchBtn = document.getElementById('clearCollegeSearchBtn');
 
   function addCourseRow(course) {
     if (!courseRowTemplate || !courseRowsEl) return;
@@ -266,15 +268,18 @@
 
   cancelEditCollegeBtn?.addEventListener('click', resetCollegeForm);
 
-  async function loadColleges() {
+  async function loadColleges(search = '') {
     if (!collegeListEl) return;
     collegeListEl.innerHTML = '<p class="text-muted">Loading colleges...</p>';
     try {
-      const res = await apiFetch('/api/admin/colleges?limit=100');
+      const query = search ? `&search=${encodeURIComponent(search)}` : '';
+      const res = await apiFetch(`/api/admin/colleges?limit=100${query}`);
       const colleges = res.data.colleges;
 
       if (colleges.length === 0) {
-        collegeListEl.innerHTML = '<p class="text-muted mb-0">No colleges added yet. Use the form above to add one.</p>';
+        collegeListEl.innerHTML = search
+          ? '<p class="text-muted mb-0">No colleges match your search.</p>'
+          : '<p class="text-muted mb-0">No colleges added yet. Use the form above to add one.</p>';
         return;
       }
 
@@ -436,6 +441,24 @@
   document.querySelector('[data-bs-target="#tab-colleges"]')?.addEventListener('click', () => {
     loadColleges();
     loadCollegeUsage();
+  });
+
+  // ---------------- College search (Manage Colleges tab) ----------------
+  let collegeSearchDebounceTimer = null;
+  collegeSearchInput?.addEventListener('input', () => {
+    const value = collegeSearchInput.value.trim();
+    clearCollegeSearchBtn?.classList.toggle('d-none', !value);
+
+    clearTimeout(collegeSearchDebounceTimer);
+    collegeSearchDebounceTimer = setTimeout(() => {
+      loadColleges(value);
+    }, 350);
+  });
+
+  clearCollegeSearchBtn?.addEventListener('click', () => {
+    collegeSearchInput.value = '';
+    clearCollegeSearchBtn.classList.add('d-none');
+    loadColleges();
   });
 
   // ---------------- Bulk College Import ----------------
